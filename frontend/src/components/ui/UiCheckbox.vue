@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
+const inputClass = 'size-3.5 accent-accent'
+const labelClass = 'inline-flex items-center gap-2 text-sm text-fg'
+
 const props = withDefaults(
   defineProps<{
     modelValue?: boolean
@@ -40,11 +43,11 @@ function onChange(event: Event): void {
 </script>
 
 <template>
-  <label class="inline-flex items-center gap-2 text-sm text-fg" :class="{ 'opacity-50': disabled }">
+  <label :class="[labelClass, { 'opacity-50': disabled }]">
     <input
       ref="inputRef"
       type="checkbox"
-      class="size-3.5 accent-accent"
+      :class="inputClass"
       :checked="modelValue"
       :disabled="disabled"
       @change="onChange"

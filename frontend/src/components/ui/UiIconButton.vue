@@ -1,4 +1,7 @@
 <script setup lang="ts">
+const baseClass =
+  'inline-flex size-8 items-center justify-center rounded text-fg-muted hover:bg-surface-muted hover:text-fg disabled:opacity-50'
+
 withDefaults(
   defineProps<{
     label: string
@@ -11,7 +14,7 @@ withDefaults(
 <template>
   <button
     type="button"
-    class="inline-flex size-8 items-center justify-center rounded text-fg-muted hover:bg-surface-muted hover:text-fg disabled:opacity-50"
+    :class="baseClass"
     :aria-label="label"
     :title="label"
     :disabled="disabled"

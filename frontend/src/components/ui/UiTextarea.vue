@@ -1,4 +1,7 @@
 <script setup lang="ts">
+const baseClass =
+  'w-full resize-y rounded border border-border bg-surface px-3 py-2 font-mono text-sm text-fg placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40'
+
 const model = defineModel<string>({ default: '' })
 
 withDefaults(
@@ -18,7 +21,7 @@ withDefaults(
 <template>
   <textarea
     v-model="model"
-    class="w-full resize-y rounded border border-border bg-surface px-3 py-2 font-mono text-sm text-fg placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-accent/40"
+    :class="baseClass"
     :rows="rows"
     :placeholder="placeholder"
     :disabled="disabled"

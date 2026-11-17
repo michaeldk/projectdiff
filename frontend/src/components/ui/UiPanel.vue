@@ -1,14 +1,21 @@
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     padding?: boolean
   }>(),
   { padding: true },
 )
+
+const classes = computed(() => [
+  'panel',
+  props.padding ? 'panel--padded' : '',
+])
 </script>
 
 <template>
-  <div class="rounded-lg border border-border bg-surface" :class="padding ? 'p-4' : ''">
+  <div :class="classes">
     <slot />
   </div>
 </template>

@@ -86,4 +86,34 @@ describe('useTheme', () => {
 
     wrapper.unmount()
   })
+
+  it('follows system preference changes while mode is system', async () => {
+    const listeners: Array<(e: MediaQueryListEvent) => void> = []
+    const mql = {
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      addEventListener: (_: string, cb: (e: MediaQueryListEvent) => void) => {
+        listeners.push(cb)
+      },
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+    } as unknown as MediaQueryList
+
+    vi.spyOn(window, 'matchMedia').mockReturnValue(mql)
+
+    const wrapper = mountTheme()
+    await nextTick()
+    expect(wrapper.vm.resolved).toBe('light')
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+
+    listeners[0]?.({ matches: true } as MediaQueryListEvent)
+    await nextTick()
+    expect(wrapper.vm.resolved).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+
+    wrapper.unmount()
+  })
 })

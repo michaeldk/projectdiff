@@ -1,6 +1,10 @@
 @layer components {
   .panel {
-    @apply rounded-lg border border-border bg-surface p-4;
+    @apply rounded-lg border border-border bg-surface;
+  }
+
+  .panel--padded {
+    @apply p-4;
   }
 
   .diff-line {
