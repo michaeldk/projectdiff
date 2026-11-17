@@ -1,4 +1,11 @@
-import type { BridgeResult } from './types'
+import type {
+  ApplyData,
+  ComputeDiffData,
+  PickFolderData,
+  PickFolderSide,
+  Result,
+  Settings,
+} from './types'
 
 function getApi() {
   const api = window.pywebview?.api
@@ -8,6 +15,47 @@ function getApi() {
   return api
 }
 
-export async function ping(): Promise<BridgeResult<string>> {
+export async function ping(): Promise<Result<string>> {
   return getApi().ping()
 }
+
+export async function pickFolder(side: PickFolderSide): Promise<Result<PickFolderData | null>> {
+  return getApi().pick_folder(side)
+}
+
+export async function getSettings(): Promise<Result<Settings>> {
+  return getApi().get_settings()
+}
+
+export async function saveSettings(settings: Partial<Settings>): Promise<Result<Settings>> {
+  return getApi().save_settings(settings)
+}
+
+export async function computeDiff(
+  pathA: string,
+  pathB: string,
+): Promise<Result<ComputeDiffData>> {
+  return getApi().compute_diff(pathA, pathB)
+}
+
+export async function apply(
+  diffId: string,
+  lineIds: string[],
+): Promise<Result<ApplyData>> {
+  return getApi().apply(diffId, lineIds)
+}
+
+export type {
+  ApplyData,
+  BridgeError,
+  BridgeResult,
+  ComputeDiffData,
+  ErrorCode,
+  FileEntry,
+  PickFolderData,
+  PickFolderSide,
+  Result,
+  Settings,
+  ThemeMode,
+} from './types'
+export { ErrorCode as ErrorCodes } from './types'
