@@ -24,6 +24,7 @@ backend/
     files.py         # file listing, ignore rules, pairing A/B
     diff.py          # unified diff parsing into a typed model
     patch.py         # builds a patch from selected lines, applies it
+    paths.py         # frontend URL for source vs PyInstaller bundle
   tests/
 frontend/
   src/
@@ -31,6 +32,9 @@ frontend/
     components/      # diff view: file list, file, hunk, line
     composables/     # selection state and other shared logic
     types/           # mirrors the backend's diff model
+build_windows.py     # PyInstaller onedir ZIP + onefile EXE
+project_diff.spec
+.github/workflows/release.yml  # tag v* → GitHub Release
 ```
 
 ## Commands
@@ -42,6 +46,7 @@ Backend, run from `backend/`:
 - `uv run python -m project_diff` — run against `frontend/dist`
 - `uv run pytest`
 - `uv run ruff check .` and `uv run ruff format .`
+- `uv sync --all-groups` then `uv run python ../build_windows.py` — Windows release artifacts (needs `frontend/dist`)
 
 Frontend, run from `frontend/`:
 
@@ -50,6 +55,8 @@ Frontend, run from `frontend/`:
 - `npm run build`
 - `npm run test` — Vitest
 - `npm run type-check` — `vue-tsc --noEmit`
+
+Release: push a `v*` tag (e.g. `v0.1.0`); `.github/workflows/release.yml` builds on `windows-latest` and publishes `Project-Diff-portable.zip` and `Project-Diff.exe`.
 
 Before finishing any task, run ruff, pytest, type-check and Vitest, and fix what fails.
 
@@ -78,7 +85,7 @@ Before finishing any task, run ruff, pytest, type-check and Vitest, and fix what
 
 ## Out of scope for v1
 
-Do not build these unless asked: binary file handling (list them as "binary, not supported"), rename detection, a non-git folder as target, packaging into an executable, committing or staging on the user's behalf, i18n.
+Do not build these unless asked: binary file handling (list them as "binary, not supported"), rename detection, a non-git folder as target, committing or staging on the user's behalf, i18n.
 
 ## Testing
 

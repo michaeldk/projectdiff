@@ -3,22 +3,12 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
+import sys
 
 import webview
 
 from project_diff.api import create_api
-
-
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[3]
-
-
-def _resolve_url(dev: bool) -> str:
-    if dev:
-        return "http://localhost:5173"
-    dist = _repo_root() / "frontend" / "dist" / "index.html"
-    return dist.as_uri()
+from project_diff.paths import is_packaged, resolve_frontend_url
 
 
 def main() -> None:
@@ -30,10 +20,20 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    url = _resolve_url(args.dev)
+    packaged = is_packaged()
+    if packaged and args.dev:
+        print("Ignoring --dev in a packaged build.", file=sys.stderr)
+        args.dev = False
+
+    try:
+        url = resolve_frontend_url(dev=args.dev)
+    except FileNotFoundError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(1) from exc
+
     api = create_api()
     webview.create_window("Project Diff", url, js_api=api, width=1280, height=800)
-    webview.start()
+    webview.start(debug=not packaged)
 
 
 if __name__ == "__main__":
