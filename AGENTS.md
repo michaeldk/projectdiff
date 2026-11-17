@@ -6,7 +6,7 @@ The repo is greenfield. This file is the specification for the scaffold: if a pa
 
 ## Stack
 
-- **Frontend:** Vue 3, Composition API with `<script setup>`, TypeScript (strict), Vite. No UI component library and no state library unless a task asks for one.
+- **Frontend:** Vue 3, Composition API with `<script setup>`, TypeScript (strict), Vite. **Styling:** Tailwind CSS v4 via `@tailwindcss/vite`; design tokens in `src/styles/theme.css`, semantic classes in `src/styles/components.css`, and small primitives in `src/components/ui/` — templates avoid long utility strings. No UI component library and no state library unless a task asks for one.
 - **Backend:** Python with pywebview. Dependencies and virtualenv managed with `uv`; lint and format with `ruff`; tests with `pytest`.
 - **Bridge:** pywebview `js_api` only. No HTTP server, no websockets.
 - **Git:** the `git` CLI through `subprocess`. No GitPython, no pygit2.

@@ -1,0 +1,29 @@
+@layer components {
+  .panel {
+    @apply rounded-lg border border-border bg-surface p-4;
+  }
+
+  .diff-line {
+    @apply font-mono text-sm leading-6;
+  }
+
+  .diff-line--add {
+    @apply bg-diff-add-bg text-diff-add-fg;
+  }
+
+  .diff-line--del {
+    @apply bg-diff-del-bg text-diff-del-fg;
+  }
+
+  .diff-gutter {
+    @apply select-none pr-2 text-right text-fg-muted;
+  }
+
+  .diff-hunk-header {
+    @apply bg-surface-muted px-2 py-1 font-mono text-xs text-fg-muted;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-2 rounded px-2 py-1 text-sm text-fg hover:bg-surface-muted;
+  }
+}

@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+@import './theme.css';
+@import './components.css';
+
+body {
+  @apply m-0 min-h-screen bg-surface text-fg antialiased;
+}
+
+#app {
+  @apply min-h-screen;
+}
