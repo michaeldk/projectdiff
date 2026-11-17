@@ -109,6 +109,32 @@ describe('useSelection', () => {
     )
   })
 
+  it('clear empties selection after selectAll', () => {
+    const diff = ref<DiffResult | null>(sampleDiff())
+    const sel = useSelection(diff)
+
+    sel.selectAll()
+    sel.clear()
+    expect(sel.selectedCount.value).toBe(0)
+    expect(sel.fileCheckState(diff.value!.files[0]!)).toBe('unchecked')
+  })
+
+  it('file and hunk toggles interact: hunk off leaves file indeterminate', () => {
+    const diff = ref<DiffResult | null>(sampleDiff())
+    const sel = useSelection(diff)
+    const f0 = diff.value!.files[0]!
+    const h0 = f0.hunks[0]!
+    const h1 = f0.hunks[1]!
+
+    sel.toggleFile(f0)
+    expect(sel.fileCheckState(f0)).toBe('checked')
+
+    sel.toggleHunk(h1)
+    expect(sel.hunkCheckState(h1)).toBe('unchecked')
+    expect(sel.hunkCheckState(h0)).toBe('checked')
+    expect(sel.fileCheckState(f0)).toBe('indeterminate')
+  })
+
   it('clears selection when diff_id changes', () => {
     const diff = ref<DiffResult | null>(sampleDiff())
     const sel = useSelection(diff)

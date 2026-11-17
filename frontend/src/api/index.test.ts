@@ -27,6 +27,19 @@ describe('api wrapper', () => {
     expect(result).toEqual({ ok: true, data: 'pong' })
   })
 
+  it('passes through structured bridge errors', async () => {
+    const applyMock = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { code: 'TARGET_DIRTY', message: 'Target has uncommitted changes' },
+    })
+    window.pywebview = { api: { apply: applyMock } as never }
+
+    await expect(apply('x', ['0:0:1'])).resolves.toEqual({
+      ok: false,
+      error: { code: 'TARGET_DIRTY', message: 'Target has uncommitted changes' },
+    })
+  })
+
   it('calls pick_folder, get/save settings, compute_diff, and apply', async () => {
     const pickMock = vi
       .fn()

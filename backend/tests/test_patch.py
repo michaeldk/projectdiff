@@ -251,6 +251,36 @@ def test_lf_target_preserves_lf_when_applying(tmp_path: Path) -> None:
     assert (repo_b / "f.txt").read_bytes() == b"same\nfrom-a\n"
 
 
+def test_mixed_eol_a_lf_b_crlf_preserves_b_eol(tmp_path: Path) -> None:
+    """B's existing CRLF wins even when A's content is LF-only."""
+    repo_a = init_repo(tmp_path / "a")
+    repo_b = init_repo(tmp_path / "b")
+    (repo_a / "f.txt").write_bytes(b"same\nfrom-a\n")
+    (repo_b / "f.txt").write_bytes(b"same\r\nfrom-b\r\n")
+    commit_all(repo_a)
+    commit_all(repo_b)
+
+    diff = compute_diff(repo_a, repo_b, pair_files(repo_a, repo_b))
+    selected = _all_change_ids(diff, "f.txt")
+    apply_selection(diff, selected, repo_a=repo_a, repo_b=repo_b)
+    assert (repo_b / "f.txt").read_bytes() == b"same\r\nfrom-a\r\n"
+
+
+def test_mixed_eol_a_crlf_b_lf_preserves_b_eol(tmp_path: Path) -> None:
+    """B's existing LF wins even when A's content is CRLF."""
+    repo_a = init_repo(tmp_path / "a")
+    repo_b = init_repo(tmp_path / "b")
+    (repo_a / "f.txt").write_bytes(b"same\r\nfrom-a\r\n")
+    (repo_b / "f.txt").write_bytes(b"same\nfrom-b\n")
+    commit_all(repo_a)
+    commit_all(repo_b)
+
+    diff = compute_diff(repo_a, repo_b, pair_files(repo_a, repo_b))
+    selected = _all_change_ids(diff, "f.txt")
+    apply_selection(diff, selected, repo_a=repo_a, repo_b=repo_b)
+    assert (repo_b / "f.txt").read_bytes() == b"same\nfrom-a\n"
+
+
 def test_new_file_keeps_a_eol(tmp_path: Path) -> None:
     repo_a = init_repo(tmp_path / "a")
     repo_b = init_repo(tmp_path / "b")
