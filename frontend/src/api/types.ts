@@ -40,11 +40,38 @@ export type ApplyData = {
   files: string[]
 }
 
+export type Project = {
+  id: string
+  name: string
+  path_a: string
+  path_b: string
+  created_at: string
+  updated_at: string
+}
+
+export type CreateProjectPayload = {
+  name: string
+  path_a: string
+  path_b: string
+}
+
+export type UpdateProjectPayload = {
+  id: string
+  name?: string
+  path_a?: string
+  path_b?: string
+}
+
+export type DeleteProjectData = {
+  id: string
+}
+
 export const ErrorCode = {
   NOT_A_REPO: 'NOT_A_REPO',
   TARGET_DIRTY: 'TARGET_DIRTY',
   APPLY_CHECK_FAILED: 'APPLY_CHECK_FAILED',
   STALE_DIFF: 'STALE_DIFF',
+  NOT_FOUND: 'NOT_FOUND',
   INTERNAL: 'INTERNAL',
 } as const
 

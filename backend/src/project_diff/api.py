@@ -14,6 +14,7 @@ from typing import Any
 import webview
 
 from project_diff import git
+from project_diff import projects as project_store
 from project_diff.diff import DiffResult
 from project_diff.diff import compute_diff as build_diff
 from project_diff.files import FileEntry, pair_files
@@ -26,6 +27,7 @@ ERROR_NOT_A_REPO = "NOT_A_REPO"
 ERROR_TARGET_DIRTY = "TARGET_DIRTY"
 ERROR_APPLY_CHECK_FAILED = "APPLY_CHECK_FAILED"
 ERROR_STALE_DIFF = "STALE_DIFF"
+ERROR_NOT_FOUND = "NOT_FOUND"
 ERROR_INTERNAL = "INTERNAL"
 
 
@@ -79,9 +81,11 @@ class Api:
         self,
         *,
         settings_path: Path | None = None,
+        projects_path: Path | None = None,
         folder_picker: FolderPicker | None = None,
     ) -> None:
         self._settings_path = settings_path
+        self._projects_path = projects_path
         self._folder_picker: FolderPicker = (
             folder_picker if folder_picker is not None else _default_folder_picker
         )
@@ -187,6 +191,59 @@ class Api:
 
         return ok({"files": list(result.files)})
 
+    def list_projects(self) -> dict[str, Any]:
+        projects = project_store.list_projects(self._projects_path)
+        return ok([p.to_dict() for p in projects])
+
+    def create_project(self, payload: dict[str, Any]) -> dict[str, Any]:
+        name, path_a, path_b = _parse_create_payload(payload)
+        _require_repos(path_a, path_b)
+        try:
+            project = project_store.create_project(
+                name=name,
+                path_a=path_a,
+                path_b=path_b,
+                path=self._projects_path,
+            )
+        except ValueError as exc:
+            raise ApiError(ERROR_INTERNAL, str(exc)) from exc
+        return ok(project.to_dict())
+
+    def update_project(self, payload: dict[str, Any]) -> dict[str, Any]:
+        project_id, name, path_a, path_b = _parse_update_payload(payload)
+
+        if path_a is not None or path_b is not None:
+            # Load current paths so a partial path update still validates both sides.
+            current = project_store.get_project(project_id, path=self._projects_path)
+            if current is None:
+                raise ApiError(ERROR_NOT_FOUND, f"Project not found: {project_id}")
+            check_a = path_a if path_a is not None else current.path_a
+            check_b = path_b if path_b is not None else current.path_b
+            _require_repos(check_a, check_b)
+
+        try:
+            project = project_store.update_project(
+                project_id,
+                name=name,
+                path_a=path_a,
+                path_b=path_b,
+                path=self._projects_path,
+            )
+        except KeyError as exc:
+            raise ApiError(ERROR_NOT_FOUND, f"Project not found: {project_id}") from exc
+        except ValueError as exc:
+            raise ApiError(ERROR_INTERNAL, str(exc)) from exc
+
+        return ok(project.to_dict())
+
+    def delete_project(self, project_id: str) -> dict[str, Any]:
+        if not isinstance(project_id, str) or not project_id.strip():
+            raise ApiError(ERROR_INTERNAL, "project_id must be a non-empty string")
+        deleted = project_store.delete_project(project_id.strip(), path=self._projects_path)
+        if not deleted:
+            raise ApiError(ERROR_NOT_FOUND, f"Project not found: {project_id}")
+        return ok({"id": project_id.strip()})
+
 
 def wrap(fn: Callable[..., dict[str, Any]]) -> Callable[..., dict[str, Any]]:
     """Wrap a js_api method so exceptions become structured errors."""
@@ -205,17 +262,78 @@ def wrap(fn: Callable[..., dict[str, Any]]) -> Callable[..., dict[str, Any]]:
 def create_api(
     *,
     settings_path: Path | None = None,
+    projects_path: Path | None = None,
     folder_picker: FolderPicker | None = None,
 ) -> Api:
-    api = Api(settings_path=settings_path, folder_picker=folder_picker)
+    api = Api(
+        settings_path=settings_path,
+        projects_path=projects_path,
+        folder_picker=folder_picker,
+    )
     api.ping = wrap(api.ping)  # type: ignore[method-assign]
     api.pick_folder = wrap(api.pick_folder)  # type: ignore[method-assign]
     api.get_settings = wrap(api.get_settings)  # type: ignore[method-assign]
     api.save_settings = wrap(api.save_settings)  # type: ignore[method-assign]
     api.compute_diff = wrap(api.compute_diff)  # type: ignore[method-assign]
     api.apply = wrap(api.apply)  # type: ignore[method-assign]
+    api.list_projects = wrap(api.list_projects)  # type: ignore[method-assign]
+    api.create_project = wrap(api.create_project)  # type: ignore[method-assign]
+    api.update_project = wrap(api.update_project)  # type: ignore[method-assign]
+    api.delete_project = wrap(api.delete_project)  # type: ignore[method-assign]
     return api
 
 
 def _to_posix(path: Path) -> str:
     return path.resolve().as_posix()
+
+
+def _require_repos(path_a: str, path_b: str) -> None:
+    repo_a = Path(path_a)
+    repo_b = Path(path_b)
+    if not git.is_repo(repo_a):
+        raise ApiError(ERROR_NOT_A_REPO, f"Source folder is not a git repository: {repo_a}")
+    if not git.is_repo(repo_b):
+        raise ApiError(ERROR_NOT_A_REPO, f"Target folder is not a git repository: {repo_b}")
+
+
+def _parse_create_payload(payload: dict[str, Any]) -> tuple[str, str, str]:
+    if not isinstance(payload, dict):
+        raise ApiError(ERROR_INTERNAL, "Project payload must be an object")
+    name = payload.get("name")
+    path_a = payload.get("path_a")
+    path_b = payload.get("path_b")
+    if not isinstance(name, str) or not name.strip():
+        raise ApiError(ERROR_INTERNAL, "name must be a non-empty string")
+    if not isinstance(path_a, str) or not path_a.strip():
+        raise ApiError(ERROR_INTERNAL, "path_a must be a non-empty string")
+    if not isinstance(path_b, str) or not path_b.strip():
+        raise ApiError(ERROR_INTERNAL, "path_b must be a non-empty string")
+    return name.strip(), path_a.strip(), path_b.strip()
+
+
+def _parse_update_payload(
+    payload: dict[str, Any],
+) -> tuple[str, str | None, str | None, str | None]:
+    if not isinstance(payload, dict):
+        raise ApiError(ERROR_INTERNAL, "Project payload must be an object")
+    project_id = payload.get("id")
+    if not isinstance(project_id, str) or not project_id.strip():
+        raise ApiError(ERROR_INTERNAL, "id must be a non-empty string")
+
+    name = payload.get("name", None)
+    path_a = payload.get("path_a", None)
+    path_b = payload.get("path_b", None)
+
+    if name is not None and (not isinstance(name, str) or not name.strip()):
+        raise ApiError(ERROR_INTERNAL, "name must be a non-empty string")
+    if path_a is not None and (not isinstance(path_a, str) or not path_a.strip()):
+        raise ApiError(ERROR_INTERNAL, "path_a must be a non-empty string")
+    if path_b is not None and (not isinstance(path_b, str) or not path_b.strip()):
+        raise ApiError(ERROR_INTERNAL, "path_b must be a non-empty string")
+
+    return (
+        project_id.strip(),
+        name.strip() if isinstance(name, str) else None,
+        path_a.strip() if isinstance(path_a, str) else None,
+        path_b.strip() if isinstance(path_b, str) else None,
+    )

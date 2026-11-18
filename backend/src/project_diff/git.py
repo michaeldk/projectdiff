@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+# Hide the brief console flash when a windowed (no-console) build shells out to git.
+_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
 
 # Commands that mutate the working tree. Never allowed against a read-only repo (A).
 _WRITE_COMMANDS = frozenset({"apply", "add", "rm", "mv", "commit", "checkout", "reset", "stash"})
@@ -83,6 +87,7 @@ def run_git(
     else:
         stdin_bytes = input_data
 
+    creationflags = _CREATE_NO_WINDOW if sys.platform == "win32" else 0
     completed = subprocess.run(
         cmd,
         cwd=repo,
@@ -90,6 +95,7 @@ def run_git(
         capture_output=True,
         shell=False,
         check=False,
+        creationflags=creationflags,
     )
     stdout = completed.stdout.decode("utf-8", errors="replace")
     stderr = completed.stderr.decode("utf-8", errors="replace")

@@ -7,6 +7,8 @@ import { defineConfig } from 'vitest/config'
 const root = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  // Relative asset URLs so file:// loads work in the pywebview / PyInstaller bundle.
+  base: './',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {

@@ -1,10 +1,14 @@
 import type {
   ApplyData,
   ComputeDiffData,
+  CreateProjectPayload,
+  DeleteProjectData,
   PickFolderData,
   PickFolderSide,
+  Project,
   Result,
   Settings,
+  UpdateProjectPayload,
 } from '@/api/types'
 
 export interface PywebviewApi {
@@ -22,6 +26,16 @@ export interface PywebviewApi {
     diffId: string,
     lineIds: string[],
   ): Promise<Result<ApplyData>> | Result<ApplyData>
+  list_projects(): Promise<Result<Project[]>> | Result<Project[]>
+  create_project(
+    payload: CreateProjectPayload,
+  ): Promise<Result<Project>> | Result<Project>
+  update_project(
+    payload: UpdateProjectPayload,
+  ): Promise<Result<Project>> | Result<Project>
+  delete_project(
+    projectId: string,
+  ): Promise<Result<DeleteProjectData>> | Result<DeleteProjectData>
 }
 
 declare global {

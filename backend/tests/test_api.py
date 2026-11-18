@@ -16,9 +16,17 @@ def _settings(tmp_path: Path) -> Path:
     return tmp_path / "ProjectDiff" / "settings.json"
 
 
+def _projects(tmp_path: Path) -> Path:
+    return tmp_path / "ProjectDiff" / "projects.json"
+
+
 def _api(tmp_path: Path, *, folder: Path | None = None):
     picker = (lambda: str(folder)) if folder is not None else (lambda: None)
-    return create_api(settings_path=_settings(tmp_path), folder_picker=picker)
+    return create_api(
+        settings_path=_settings(tmp_path),
+        projects_path=_projects(tmp_path),
+        folder_picker=picker,
+    )
 
 
 def _change_ids(diff_payload: dict, path: str) -> list[str]:
@@ -260,3 +268,92 @@ def test_pick_folder_sides(tmp_path: Path, side: str) -> None:
     result = api.pick_folder(side)
     assert result["ok"] is True
     assert result["data"]["side"] == side
+
+
+def test_project_crud_through_api(tmp_path: Path) -> None:
+    repo_a = init_repo(tmp_path / "a")
+    repo_b = init_repo(tmp_path / "b")
+    write_file(repo_a, "f.txt", "a\n")
+    write_file(repo_b, "f.txt", "b\n")
+    commit_all(repo_a)
+    commit_all(repo_b)
+
+    api = _api(tmp_path)
+    assert api.list_projects() == {"ok": True, "data": []}
+
+    created = api.create_project(
+        {
+            "name": "Pair",
+            "path_a": str(repo_a),
+            "path_b": str(repo_b),
+        }
+    )
+    assert created["ok"] is True
+    project = created["data"]
+    assert project["name"] == "Pair"
+    assert project["id"]
+
+    listed = api.list_projects()
+    assert listed["ok"] is True
+    assert len(listed["data"]) == 1
+    assert listed["data"][0]["id"] == project["id"]
+
+    updated = api.update_project({"id": project["id"], "name": "Renamed"})
+    assert updated["ok"] is True
+    assert updated["data"]["name"] == "Renamed"
+
+    deleted = api.delete_project(project["id"])
+    assert deleted == {"ok": True, "data": {"id": project["id"]}}
+    assert api.list_projects() == {"ok": True, "data": []}
+
+
+def test_create_project_rejects_non_repo(tmp_path: Path) -> None:
+    repo = init_repo(tmp_path / "a")
+    write_file(repo, "f.txt", "x\n")
+    commit_all(repo)
+    plain = tmp_path / "plain"
+    plain.mkdir()
+
+    api = _api(tmp_path)
+    result = api.create_project(
+        {
+            "name": "Bad",
+            "path_a": str(repo),
+            "path_b": str(plain),
+        }
+    )
+    assert result["ok"] is False
+    assert result["error"]["code"] == "NOT_A_REPO"
+
+
+def test_update_project_rejects_non_repo_and_missing(tmp_path: Path) -> None:
+    repo_a = init_repo(tmp_path / "a")
+    repo_b = init_repo(tmp_path / "b")
+    write_file(repo_a, "f.txt", "a\n")
+    write_file(repo_b, "f.txt", "b\n")
+    commit_all(repo_a)
+    commit_all(repo_b)
+    plain = tmp_path / "plain"
+    plain.mkdir()
+
+    api = _api(tmp_path)
+    created = api.create_project(
+        {
+            "name": "Pair",
+            "path_a": str(repo_a),
+            "path_b": str(repo_b),
+        }
+    )
+    project_id = created["data"]["id"]
+
+    bad = api.update_project({"id": project_id, "path_b": str(plain)})
+    assert bad["ok"] is False
+    assert bad["error"]["code"] == "NOT_A_REPO"
+
+    missing = api.update_project({"id": "nope", "name": "x"})
+    assert missing["ok"] is False
+    assert missing["error"]["code"] == "NOT_FOUND"
+
+    deleted = api.delete_project("nope")
+    assert deleted["ok"] is False
+    assert deleted["error"]["code"] == "NOT_FOUND"
