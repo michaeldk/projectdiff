@@ -31,7 +31,7 @@ function shortPath(path: string | null): string {
       </div>
     </div>
     <div class="flex flex-col gap-1">
-      <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">Target (B)</span>
+      <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">Destination (B)</span>
       <div class="flex items-center gap-2">
         <UiButton size="sm" :disabled="loading" @click="emit('pick', 'b')">Browse…</UiButton>
         <span class="truncate font-mono text-sm" :title="pathB ?? undefined">

@@ -1,6 +1,6 @@
 # AGENTS.md — Project Diff
 
-Desktop app that compares two local git repositories, shows the differences in a GitHub pull-request style view, and lets the user pick individual lines to bring from project A (source) into project B (target).
+Desktop app that compares two local git repositories, shows the differences in a GitHub pull-request style view, and lets the user pick individual lines to bring from project A (source) into project B (destination).
 
 The repo is greenfield. This file is the specification for the scaffold: if a path or command below does not exist yet, create it as described rather than inventing a different layout.
 
@@ -73,7 +73,7 @@ Before finishing any task, run ruff, pytest, type-check and Vitest, and fix what
 ## Rules that must hold
 
 - **A is read-only.** Never run a command that can write to A.
-- **Dirty target is a soft warning.** If `git status --porcelain` in B is not empty, the UI shows a banner; apply is still allowed. Report `target_dirty` from `compute_diff`.
+- **Dirty destination is a soft warning.** If `git status --porcelain` in B is not empty, the UI shows a banner; apply is still allowed. Report `destination_dirty` from `compute_diff`.
 - **Check before apply.** Always run `git apply --check` first. If it fails, apply nothing and surface git's error message.
 - **Working tree only.** Never stage, commit, create branches, stash, or reset in B.
 - **Patch building lives in `patch.py`.** For a partial selection: an unselected added line is dropped, an unselected removed line becomes context, and hunk headers are recomputed. A hunk with nothing selected is omitted.
@@ -85,11 +85,11 @@ Before finishing any task, run ruff, pytest, type-check and Vitest, and fix what
 
 ## Out of scope for v1
 
-Do not build these unless asked: binary file handling (list them as "binary, not supported"), rename detection, a non-git folder as target, committing or staging on the user's behalf, i18n.
+Do not build these unless asked: binary file handling (list them as "binary, not supported"), rename detection, a non-git folder as destination, committing or staging on the user's behalf, i18n.
 
 ## Testing
 
-- **pytest:** build temporary git repos with `tmp_path` and exercise the real `git` binary; do not mock git. Required coverage: file listing with ignore rules, diff parsing, partial-line patch building, CRLF/LF mixes, files only in A, files only in B, dirty-target soft warning (`target_dirty`), failed `--check`.
+- **pytest:** build temporary git repos with `tmp_path` and exercise the real `git` binary; do not mock git. Required coverage: file listing with ignore rules, diff parsing, partial-line patch building, CRLF/LF mixes, files only in A, files only in B, dirty-destination soft warning (`destination_dirty`), failed `--check`.
 - **Vitest:** selection logic (line, hunk, file toggles and their interaction) and the API wrapper. Component snapshot tests are not required.
 
 ## Conventions

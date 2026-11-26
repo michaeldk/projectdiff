@@ -6,7 +6,7 @@ defineProps<{
   selectedCount: number
   applying?: boolean
   canApply?: boolean
-  targetDirty?: boolean
+  destinationDirty?: boolean
   message?: string | null
   messageTone?: 'success' | 'danger' | 'info' | 'warning'
 }>()
@@ -35,12 +35,12 @@ const emit = defineEmits<{
           :loading="applying"
           @click="emit('apply')"
         >
-          Apply to B
+          Apply to destination
         </UiButton>
       </div>
     </div>
-    <UiAlert v-if="targetDirty" tone="warning">
-      Target has uncommitted changes. Apply still works; commit or stash when you are done.
+    <UiAlert v-if="destinationDirty" tone="warning">
+      Destination has uncommitted changes. Apply still works; commit or stash when you are done.
     </UiAlert>
     <UiAlert v-if="message" :tone="messageTone ?? 'info'">{{ message }}</UiAlert>
   </div>

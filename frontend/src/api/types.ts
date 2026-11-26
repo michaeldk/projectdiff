@@ -34,7 +34,7 @@ export type FileEntry = {
 export type ComputeDiffData = {
   file_list: FileEntry[]
   diff: import('@/types/diff').DiffResult
-  target_dirty: boolean
+  destination_dirty: boolean
 }
 
 export type ApplyData = {

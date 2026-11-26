@@ -52,12 +52,12 @@ def settings_path() -> Path:
 
 def load_settings(path: Path | None = None) -> Settings:
     """Load settings from disk, falling back to defaults when missing or invalid."""
-    target = path if path is not None else settings_path()
-    if not target.is_file():
+    file_path = path if path is not None else settings_path()
+    if not file_path.is_file():
         return default_settings()
 
     try:
-        raw = json.loads(target.read_text(encoding="utf-8"))
+        raw = json.loads(file_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return default_settings()
 
@@ -71,10 +71,10 @@ def load_settings(path: Path | None = None) -> Settings:
 
 def save_settings(settings: Settings, path: Path | None = None) -> None:
     """Write settings as JSON, creating the parent directory if needed."""
-    target = path if path is not None else settings_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
+    file_path = path if path is not None else settings_path()
+    file_path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(settings.to_dict(), indent=2, ensure_ascii=False) + "\n"
-    target.write_text(payload, encoding="utf-8")
+    file_path.write_text(payload, encoding="utf-8")
 
 
 def _parse_excludes(value: Any) -> list[str]:

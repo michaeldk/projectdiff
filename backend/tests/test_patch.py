@@ -1,4 +1,4 @@
-"""Tests for patch.py: partial selection, EOL, dirty target apply, apply --check."""
+"""Tests for patch.py: partial selection, EOL, dirty destination apply, apply --check."""
 
 from __future__ import annotations
 
@@ -220,7 +220,7 @@ def test_only_b_partial_selection_removes_some_lines(tmp_path: Path) -> None:
     assert (repo_b / "trim.txt").read_text(encoding="utf-8") == "keep\nkeep2\n"
 
 
-def test_crlf_target_preserves_crlf_when_applying(tmp_path: Path) -> None:
+def test_crlf_destination_preserves_crlf_when_applying(tmp_path: Path) -> None:
     repo_a = init_repo(tmp_path / "a")
     repo_b = init_repo(tmp_path / "b")
     (repo_a / "f.txt").write_bytes(b"same\r\nfrom-a\r\n")
@@ -236,7 +236,7 @@ def test_crlf_target_preserves_crlf_when_applying(tmp_path: Path) -> None:
     assert data == b"same\r\nfrom-a\r\n"
 
 
-def test_lf_target_preserves_lf_when_applying(tmp_path: Path) -> None:
+def test_lf_destination_preserves_lf_when_applying(tmp_path: Path) -> None:
     repo_a = init_repo(tmp_path / "a")
     repo_b = init_repo(tmp_path / "b")
     (repo_a / "f.txt").write_bytes(b"same\nfrom-a\n")
@@ -295,7 +295,7 @@ def test_new_file_keeps_a_eol(tmp_path: Path) -> None:
     assert (repo_b / "new.txt").read_bytes() == b"line\r\n"
 
 
-def test_dirty_target_allows_apply_when_check_passes(tmp_path: Path) -> None:
+def test_dirty_destination_allows_apply_when_check_passes(tmp_path: Path) -> None:
     repo_a = init_repo(tmp_path / "a")
     repo_b = init_repo(tmp_path / "b")
     write_file(repo_a, "f.txt", "a\n")

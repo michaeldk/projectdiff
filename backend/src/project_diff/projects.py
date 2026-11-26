@@ -1,4 +1,4 @@
-"""Persist named source/target project pairs under %APPDATA%\\ProjectDiff."""
+"""Persist named source/destination project pairs under %APPDATA%\\ProjectDiff."""
 
 from __future__ import annotations
 
@@ -49,12 +49,12 @@ def _to_posix(path: str) -> str:
 
 def load_projects(path: Path | None = None) -> list[Project]:
     """Load projects from disk. Missing or invalid files yield an empty list."""
-    target = path if path is not None else projects_path()
-    if not target.is_file():
+    file_path = path if path is not None else projects_path()
+    if not file_path.is_file():
         return []
 
     try:
-        raw = json.loads(target.read_text(encoding="utf-8"))
+        raw = json.loads(file_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return []
 
@@ -75,13 +75,13 @@ def load_projects(path: Path | None = None) -> list[Project]:
 
 def save_projects(projects: list[Project], path: Path | None = None) -> None:
     """Write the full project list as JSON, creating the parent directory if needed."""
-    target = path if path is not None else projects_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
+    file_path = path if path is not None else projects_path()
+    file_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "projects": [p.to_dict() for p in projects],
     }
     text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
-    target.write_text(text, encoding="utf-8")
+    file_path.write_text(text, encoding="utf-8")
 
 
 def list_projects(path: Path | None = None) -> list[Project]:

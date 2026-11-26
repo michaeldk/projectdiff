@@ -60,7 +60,7 @@ function onSubmit(): void {
     <div>
       <h2 class="text-xl font-semibold">{{ title }}</h2>
       <p class="mt-1 text-sm text-fg-muted">
-        Choose a name and pick source (A) and target (B) git repositories.
+        Choose a name and pick source (A) and destination (B) git repositories.
       </p>
     </div>
 

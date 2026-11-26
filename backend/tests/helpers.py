@@ -31,13 +31,13 @@ def init_repo(path: Path) -> Path:
 
 
 def write_file(repo: Path, rel: str, content: str | bytes) -> Path:
-    target = repo / rel
-    target.parent.mkdir(parents=True, exist_ok=True)
+    file_path = repo / rel
+    file_path.parent.mkdir(parents=True, exist_ok=True)
     if isinstance(content, bytes):
-        target.write_bytes(content)
+        file_path.write_bytes(content)
     else:
-        target.write_text(content, encoding="utf-8", newline="\n")
-    return target
+        file_path.write_text(content, encoding="utf-8", newline="\n")
+    return file_path
 
 
 def commit_all(repo: Path, message: str = "commit") -> None:

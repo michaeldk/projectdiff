@@ -59,7 +59,7 @@ describe('api wrapper', () => {
       data: {
         file_list: [{ path: 'a.ts', side: 'both', binary: false }],
         diff: { diff_id: 'x', files: [] },
-        target_dirty: false,
+        destination_dirty: false,
       },
     })
     const applyMock = vi.fn().mockResolvedValue({ ok: true, data: { files: ['a.ts'] } })

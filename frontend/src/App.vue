@@ -48,7 +48,7 @@ const excludeText = ref('')
 
 const fileList = ref<FileEntry[]>([])
 const diff = ref<DiffResult | null>(null)
-const targetDirty = ref(false)
+const destinationDirty = ref(false)
 const activePath = ref<string | null>(null)
 
 const picking = ref(false)
@@ -117,7 +117,7 @@ function clearWorkspaceState(): void {
   projectName.value = ''
   fileList.value = []
   diff.value = null
-  targetDirty.value = false
+  destinationDirty.value = false
   activePath.value = null
 }
 
@@ -286,7 +286,7 @@ async function onCompute(): Promise<void> {
     }
     fileList.value = result.data.file_list
     diff.value = result.data.diff
-    targetDirty.value = result.data.target_dirty
+    destinationDirty.value = result.data.destination_dirty
     activePath.value = result.data.file_list[0]?.path ?? null
     const n = result.data.diff.files.length
     setStatus(`Compared — ${n} differing file${n === 1 ? '' : 's'}.`, 'info')
@@ -310,7 +310,7 @@ async function onApply(): Promise<void> {
     if (!result.ok) {
       const hint =
         result.error.code === 'APPLY_CHECK_FAILED'
-          ? ' Re-diff if the target changed.'
+          ? ' Re-diff if the destination changed.'
           : ''
       setStatus(`${result.error.message}${hint}`, 'danger')
       return
@@ -542,7 +542,7 @@ onMounted(() => {
       >
         <p class="text-lg font-medium">No diff yet</p>
         <p class="max-w-md text-center text-sm text-fg-muted">
-          Click Compare after choosing source and target folders.
+          Click Compare after choosing source and destination folders.
         </p>
         <UiAlert v-if="statusMessage" :tone="statusTone" class="mt-4 max-w-lg">
           {{ statusMessage }}
@@ -568,7 +568,7 @@ onMounted(() => {
         :selected-count="selectedCount"
         :applying="applying"
         :can-apply="canApply"
-        :target-dirty="targetDirty"
+        :destination-dirty="destinationDirty"
         :message="diff ? statusMessage : null"
         :message-tone="statusTone"
         @apply="onApply"

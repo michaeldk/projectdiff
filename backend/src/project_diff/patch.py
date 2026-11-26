@@ -1,4 +1,4 @@
-"""Build patches from selected lines and apply them to target (B)."""
+"""Build patches from selected lines and apply them to destination (B)."""
 
 from __future__ import annotations
 

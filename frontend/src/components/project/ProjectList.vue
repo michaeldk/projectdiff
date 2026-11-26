@@ -26,7 +26,7 @@ function shortPath(path: string): string {
       <div>
         <h2 class="text-xl font-semibold">Projects</h2>
         <p class="mt-1 text-sm text-fg-muted">
-          Each project is a source and target folder pair. Open one to compare and apply.
+          Each project is a source and destination folder pair. Open one to compare and apply.
         </p>
       </div>
       <UiButton variant="primary" size="sm" :disabled="loading" @click="emit('create')">

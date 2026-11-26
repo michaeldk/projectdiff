@@ -139,7 +139,9 @@ class Api:
         if not git.is_repo(repo_a):
             raise ApiError(ERROR_NOT_A_REPO, f"Source folder is not a git repository: {repo_a}")
         if not git.is_repo(repo_b):
-            raise ApiError(ERROR_NOT_A_REPO, f"Target folder is not a git repository: {repo_b}")
+            raise ApiError(
+                ERROR_NOT_A_REPO, f"Destination folder is not a git repository: {repo_b}"
+            )
 
         git.mark_read_only(repo_a)
 
@@ -160,7 +162,7 @@ class Api:
             {
                 "file_list": [_file_entry_to_dict(e) for e in file_list],
                 "diff": diff.to_dict(),
-                "target_dirty": git.is_dirty(repo_b),
+                "destination_dirty": git.is_dirty(repo_b),
             }
         )
 
@@ -291,7 +293,7 @@ def _require_repos(path_a: str, path_b: str) -> None:
     if not git.is_repo(repo_a):
         raise ApiError(ERROR_NOT_A_REPO, f"Source folder is not a git repository: {repo_a}")
     if not git.is_repo(repo_b):
-        raise ApiError(ERROR_NOT_A_REPO, f"Target folder is not a git repository: {repo_b}")
+        raise ApiError(ERROR_NOT_A_REPO, f"Destination folder is not a git repository: {repo_b}")
 
 
 def _parse_create_payload(payload: dict[str, Any]) -> tuple[str, str, str]:
