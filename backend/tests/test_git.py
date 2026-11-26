@@ -43,14 +43,16 @@ def test_ls_files_honors_gitignore(tmp_path: Path) -> None:
     assert ".gitignore" in files
 
 
-def test_status_porcelain_dirty_and_clean(tmp_path: Path) -> None:
+def test_is_dirty_and_status_porcelain(tmp_path: Path) -> None:
     repo = init_repo(tmp_path / "repo")
     write_file(repo, "a.txt", "a\n")
     commit_all(repo)
     assert git.status_porcelain(repo) == ""
+    assert git.is_dirty(repo) is False
 
     write_file(repo, "a.txt", "changed\n")
     assert git.status_porcelain(repo) != ""
+    assert git.is_dirty(repo) is True
 
 
 def test_diff_no_index_reports_differences(tmp_path: Path) -> None:

@@ -1,4 +1,4 @@
-"""Tests for patch.py: partial selection, EOL, dirty refusal, apply --check."""
+"""Tests for patch.py: partial selection, EOL, dirty target apply, apply --check."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from project_diff.diff import LineKind, compute_diff
 from project_diff.files import pair_files
 from project_diff.patch import (
     ApplyCheckFailedError,
-    TargetDirtyError,
     apply_selection,
     build_patch,
     detect_eol,
@@ -296,7 +295,7 @@ def test_new_file_keeps_a_eol(tmp_path: Path) -> None:
     assert (repo_b / "new.txt").read_bytes() == b"line\r\n"
 
 
-def test_dirty_target_refuses_apply(tmp_path: Path) -> None:
+def test_dirty_target_allows_apply_when_check_passes(tmp_path: Path) -> None:
     repo_a = init_repo(tmp_path / "a")
     repo_b = init_repo(tmp_path / "b")
     write_file(repo_a, "f.txt", "a\n")
@@ -304,15 +303,14 @@ def test_dirty_target_refuses_apply(tmp_path: Path) -> None:
     commit_all(repo_a)
     commit_all(repo_b)
 
-    # Dirty B after commit.
+    # Dirty B after commit; diff reflects the working tree.
     write_file(repo_b, "f.txt", "dirty\n")
 
     diff = compute_diff(repo_a, repo_b, pair_files(repo_a, repo_b))
     selected = _all_change_ids(diff, "f.txt")
-    with pytest.raises(TargetDirtyError) as exc_info:
-        apply_selection(diff, selected, repo_a=repo_a, repo_b=repo_b)
-    assert exc_info.value.code == "TARGET_DIRTY"
-    assert (repo_b / "f.txt").read_text(encoding="utf-8") == "dirty\n"
+    result = apply_selection(diff, selected, repo_a=repo_a, repo_b=repo_b)
+    assert result.files == ("f.txt",)
+    assert (repo_b / "f.txt").read_text(encoding="utf-8") == "a\n"
 
 
 def test_apply_check_failure_surfaces_message(tmp_path: Path) -> None:
@@ -328,10 +326,8 @@ def test_apply_check_failure_surfaces_message(tmp_path: Path) -> None:
     patch = build_patch(diff, selected, repo_a=repo_a, repo_b=repo_b)
     assert patch
 
-    # Change B after the diff so --check fails.
+    # Change B after the diff so --check fails (tree may be dirty).
     write_file(repo_b, "f.txt", "gamma\n")
-    # Re-commit so status is clean (dirty check must pass; --check must fail).
-    commit_all(repo_b, "mutate")
 
     with pytest.raises(ApplyCheckFailedError) as exc_info:
         apply_selection(diff, selected, repo_a=repo_a, repo_b=repo_b)

@@ -34,13 +34,13 @@ describe('api wrapper', () => {
   it('passes through structured bridge errors', async () => {
     const applyMock = vi.fn().mockResolvedValue({
       ok: false,
-      error: { code: 'TARGET_DIRTY', message: 'Target has uncommitted changes' },
+      error: { code: 'APPLY_CHECK_FAILED', message: 'patch does not apply' },
     })
     window.pywebview = { api: { apply: applyMock } as never }
 
     await expect(apply('x', ['0:0:1'])).resolves.toEqual({
       ok: false,
-      error: { code: 'TARGET_DIRTY', message: 'Target has uncommitted changes' },
+      error: { code: 'APPLY_CHECK_FAILED', message: 'patch does not apply' },
     })
   })
 
@@ -59,6 +59,7 @@ describe('api wrapper', () => {
       data: {
         file_list: [{ path: 'a.ts', side: 'both', binary: false }],
         diff: { diff_id: 'x', files: [] },
+        target_dirty: false,
       },
     })
     const applyMock = vi.fn().mockResolvedValue({ ok: true, data: { files: ['a.ts'] } })

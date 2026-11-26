@@ -119,6 +119,7 @@ def test_compute_diff_returns_file_list_and_diff(tmp_path: Path) -> None:
     data = result["data"]
     assert "diff" in data and "file_list" in data
     assert data["diff"]["diff_id"]
+    assert data["target_dirty"] is False
     paths = {e["path"] for e in data["file_list"]}
     assert paths == {"shared.txt", "only_a.txt", "only_b.txt"}
     assert is_read_only(repo_a)
@@ -205,23 +206,48 @@ def test_apply_stale_after_recompute(tmp_path: Path) -> None:
     assert stale["error"]["code"] == "STALE_DIFF"
 
 
-def test_apply_refuses_dirty_target(tmp_path: Path) -> None:
+def test_compute_diff_reports_target_dirty(tmp_path: Path) -> None:
     repo_a = init_repo(tmp_path / "a")
     repo_b = init_repo(tmp_path / "b")
     write_file(repo_a, "f.txt", "a\n")
     write_file(repo_b, "f.txt", "b\n")
     commit_all(repo_a)
     commit_all(repo_b)
+    write_file(repo_b, "f.txt", "dirty\n")
 
     api = _api(tmp_path)
     computed = api.compute_diff(str(repo_a), str(repo_b))
-    diff_id = computed["data"]["diff"]["diff_id"]
-    line_ids = _change_ids(computed["data"]["diff"], "f.txt")
+    assert computed["ok"] is True
+    assert computed["data"]["target_dirty"] is True
 
-    write_file(repo_b, "f.txt", "dirty\n")
-    result = api.apply(diff_id, line_ids)
-    assert result["ok"] is False
-    assert result["error"]["code"] == "TARGET_DIRTY"
+
+def test_apply_allows_dirty_target(tmp_path: Path) -> None:
+    repo_a = init_repo(tmp_path / "a")
+    repo_b = init_repo(tmp_path / "b")
+    write_file(repo_a, "f.txt", "a\n")
+    write_file(repo_b, "f.txt", "b\n")
+    write_file(repo_a, "g.txt", "ga\n")
+    write_file(repo_b, "g.txt", "gb\n")
+    commit_all(repo_a)
+    commit_all(repo_b)
+
+    api = _api(tmp_path)
+    first = api.compute_diff(str(repo_a), str(repo_b))
+    assert first["data"]["target_dirty"] is False
+    first_ids = _change_ids(first["data"]["diff"], "f.txt")
+    applied = api.apply(first["data"]["diff"]["diff_id"], first_ids)
+    assert applied["ok"] is True
+    assert (repo_b / "f.txt").read_text(encoding="utf-8") == "a\n"
+
+    # Second apply while B is dirty from the first apply.
+    second = api.compute_diff(str(repo_a), str(repo_b))
+    assert second["data"]["target_dirty"] is True
+    applied_g = api.apply(
+        second["data"]["diff"]["diff_id"],
+        _change_ids(second["data"]["diff"], "g.txt"),
+    )
+    assert applied_g["ok"] is True
+    assert (repo_b / "g.txt").read_text(encoding="utf-8") == "ga\n"
 
 
 def test_apply_check_failed(tmp_path: Path) -> None:

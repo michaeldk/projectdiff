@@ -141,6 +141,11 @@ def status_porcelain(repo: Path) -> str:
     return run_git(repo, ["status", "--porcelain"]).stdout
 
 
+def is_dirty(repo: Path) -> bool:
+    """True when the working tree has uncommitted changes."""
+    return bool(status_porcelain(repo).strip())
+
+
 def diff_no_index(path_b: Path, path_a: Path, *, cwd: Path | None = None) -> str:
     """Unified diff that turns *path_b* into *path_a*.
 

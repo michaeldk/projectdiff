@@ -34,6 +34,7 @@ export type FileEntry = {
 export type ComputeDiffData = {
   file_list: FileEntry[]
   diff: import('@/types/diff').DiffResult
+  target_dirty: boolean
 }
 
 export type ApplyData = {
@@ -68,7 +69,6 @@ export type DeleteProjectData = {
 
 export const ErrorCode = {
   NOT_A_REPO: 'NOT_A_REPO',
-  TARGET_DIRTY: 'TARGET_DIRTY',
   APPLY_CHECK_FAILED: 'APPLY_CHECK_FAILED',
   STALE_DIFF: 'STALE_DIFF',
   NOT_FOUND: 'NOT_FOUND',

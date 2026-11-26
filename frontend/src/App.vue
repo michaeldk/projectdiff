@@ -48,6 +48,7 @@ const excludeText = ref('')
 
 const fileList = ref<FileEntry[]>([])
 const diff = ref<DiffResult | null>(null)
+const targetDirty = ref(false)
 const activePath = ref<string | null>(null)
 
 const picking = ref(false)
@@ -116,6 +117,7 @@ function clearWorkspaceState(): void {
   projectName.value = ''
   fileList.value = []
   diff.value = null
+  targetDirty.value = false
   activePath.value = null
 }
 
@@ -284,6 +286,7 @@ async function onCompute(): Promise<void> {
     }
     fileList.value = result.data.file_list
     diff.value = result.data.diff
+    targetDirty.value = result.data.target_dirty
     activePath.value = result.data.file_list[0]?.path ?? null
     const n = result.data.diff.files.length
     setStatus(`Compared — ${n} differing file${n === 1 ? '' : 's'}.`, 'info')
@@ -565,6 +568,7 @@ onMounted(() => {
         :selected-count="selectedCount"
         :applying="applying"
         :can-apply="canApply"
+        :target-dirty="targetDirty"
         :message="diff ? statusMessage : null"
         :message-tone="statusTone"
         @apply="onApply"

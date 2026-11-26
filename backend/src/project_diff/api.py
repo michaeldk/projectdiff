@@ -18,13 +18,12 @@ from project_diff import projects as project_store
 from project_diff.diff import DiffResult
 from project_diff.diff import compute_diff as build_diff
 from project_diff.files import FileEntry, pair_files
-from project_diff.patch import ApplyCheckFailedError, TargetDirtyError, apply_selection
+from project_diff.patch import ApplyCheckFailedError, apply_selection
 from project_diff.settings import Settings, load_settings, save_settings
 
 FolderPicker = Callable[[], str | None]
 
 ERROR_NOT_A_REPO = "NOT_A_REPO"
-ERROR_TARGET_DIRTY = "TARGET_DIRTY"
 ERROR_APPLY_CHECK_FAILED = "APPLY_CHECK_FAILED"
 ERROR_STALE_DIFF = "STALE_DIFF"
 ERROR_NOT_FOUND = "NOT_FOUND"
@@ -161,6 +160,7 @@ class Api:
             {
                 "file_list": [_file_entry_to_dict(e) for e in file_list],
                 "diff": diff.to_dict(),
+                "target_dirty": git.is_dirty(repo_b),
             }
         )
 
@@ -184,8 +184,6 @@ class Api:
                 repo_a=cached.repo_a,
                 repo_b=cached.repo_b,
             )
-        except TargetDirtyError as exc:
-            raise ApiError(ERROR_TARGET_DIRTY, str(exc)) from exc
         except ApplyCheckFailedError as exc:
             raise ApiError(ERROR_APPLY_CHECK_FAILED, str(exc)) from exc
 

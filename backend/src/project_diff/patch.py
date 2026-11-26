@@ -11,14 +11,6 @@ from project_diff.diff import DiffResult, FileDiff, Hunk, Line, LineKind
 from project_diff.files import FileSide
 
 
-class TargetDirtyError(Exception):
-    """Raised when B's working tree is not clean before apply."""
-
-    def __init__(self, message: str = "Target repository has uncommitted changes") -> None:
-        super().__init__(message)
-        self.code = "TARGET_DIRTY"
-
-
 class ApplyCheckFailedError(Exception):
     """Raised when ``git apply --check`` rejects the patch."""
 
@@ -82,13 +74,7 @@ def apply_selection(
     repo_a: Path,
     repo_b: Path,
 ) -> ApplyResult:
-    """Refuse a dirty B, ``git apply --check``, then ``git apply`` the selection."""
-    status = git.status_porcelain(repo_b)
-    if status.strip():
-        raise TargetDirtyError(
-            "Target repository has uncommitted changes; commit or stash before applying"
-        )
-
+    """``git apply --check``, then ``git apply`` the selection into B's working tree."""
     patch = build_patch(diff, selected_ids, repo_a=repo_a, repo_b=repo_b)
     if not patch:
         return ApplyResult(files=())
