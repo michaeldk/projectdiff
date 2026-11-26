@@ -13,8 +13,8 @@ const props = withDefaults(
 const toneClass: Record<Tone, string> = {
   info: 'border-border bg-surface-muted text-fg',
   success: 'border-diff-add-fg/30 bg-diff-add-bg text-diff-add-fg',
-  warning: 'border-border bg-surface-muted text-fg',
-  danger: 'border-danger/40 bg-diff-del-bg text-danger',
+  warning: 'border-danger/40 bg-diff-del-bg font-medium text-danger',
+  danger: 'border-danger/50 bg-diff-del-bg text-danger',
 }
 
 const classes = computed(() => [
