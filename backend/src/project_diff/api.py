@@ -149,7 +149,8 @@ class Api:
         pairing = pair_files(repo_a, repo_b, settings.excludes)
         diff = build_diff(repo_a, repo_b, pairing)
 
-        file_list = tuple(pairing.all_entries())
+        diffed_paths = {f.path for f in diff.files}
+        file_list = tuple(e for e in pairing.all_entries() if e.path in diffed_paths)
         self._cache.clear()
         self._cache[diff.diff_id] = _CachedDiff(
             diff=diff,
