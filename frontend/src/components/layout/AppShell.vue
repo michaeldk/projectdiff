@@ -5,8 +5,8 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-surface text-fg">
-    <header class="flex items-center gap-3 border-b border-border px-4 py-2">
+  <div class="flex h-screen flex-col overflow-hidden bg-surface text-fg">
+    <header class="flex shrink-0 items-center gap-3 border-b border-border px-4 py-2">
       <h1 class="text-base font-semibold">{{ title ?? 'Project Diff' }}</h1>
       <div class="ml-auto flex items-center gap-2">
         <slot name="header-actions" />
@@ -25,7 +25,7 @@ defineProps<{
       </main>
     </div>
 
-    <footer v-if="$slots.footer" class="border-t border-border">
+    <footer v-if="$slots.footer" class="shrink-0 border-t border-border">
       <slot name="footer" />
     </footer>
   </div>
