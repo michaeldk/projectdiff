@@ -218,6 +218,8 @@ def _diff_entry(
 
     # both
     if entry.binary:
+        if (repo_a / entry.path).read_bytes() == (repo_b / entry.path).read_bytes():
+            return None
         return FileDiff(path=entry.path, side=FileSide.BOTH, binary=True, hunks=())
 
     raw = git.diff_no_index(repo_b / entry.path, repo_a / entry.path, cwd=repo_b)
