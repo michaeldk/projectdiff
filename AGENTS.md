@@ -62,7 +62,7 @@ Before finishing any task, run ruff, pytest, type-check and Vitest, and fix what
 
 ## How the app works
 
-1. **Pick folders.** The user chooses A and B with the native folder dialog opened from Python. Both must be git repositories; reject anything else with a clear message.
+1. **Pick folders.** The user chooses A (source) and B (destination) with the native folder dialog opened from Python. Both must be git repositories; reject anything else with a clear message. The UI can swap source and destination; that clears any selection and recomputes the diff.
 2. **List files.** In each repo, list tracked and untracked-but-not-ignored files with `git ls-files --cached --others --exclude-standard`, so each side's `.gitignore` is honored. Then remove anything matching the app-level exclude list, which the user can edit in the UI.
 3. **Pair files** by relative path: in both, only in A, only in B.
 4. **Diff** each differing pair with `git diff --no-index --ignore-cr-at-eol`, oriented so that applying the result turns B's file into A's. Exit code 1 means "differences found", not failure.

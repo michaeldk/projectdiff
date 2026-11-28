@@ -95,6 +95,15 @@ const canApply = computed(
   () => Boolean(diff.value) && selectedCount.value > 0 && !applying.value,
 )
 
+const canSwap = computed(
+  () =>
+    Boolean(pathA.value && pathB.value) &&
+    !applying.value &&
+    !computing.value &&
+    !picking.value &&
+    !savingProject.value,
+)
+
 const shellTitle = computed(() => {
   if (view.value === 'workspace' && activeProject.value) {
     return activeProject.value.name
@@ -188,6 +197,39 @@ async function onPick(side: 'a' | 'b'): Promise<void> {
   } finally {
     picking.value = false
   }
+}
+
+async function onSwap(): Promise<void> {
+  if (!canSwap.value || !pathA.value || !pathB.value) return
+
+  if (
+    selectedCount.value > 0 &&
+    !window.confirm(
+      'Swap source and destination? Current selection will be cleared.',
+    )
+  ) {
+    return
+  }
+
+  const previousA = pathA.value
+  const previousB = pathB.value
+  pathA.value = previousB
+  pathB.value = previousA
+
+  if (view.value === 'workspace' && activeProject.value) {
+    await persistActiveProjectPaths()
+    // Revert local paths if the project on disk was not updated.
+    if (
+      activeProject.value.path_a !== pathA.value ||
+      activeProject.value.path_b !== pathB.value
+    ) {
+      pathA.value = previousA
+      pathB.value = previousB
+    }
+    return
+  }
+
+  setStatus('Swapped source and destination.', 'info')
 }
 
 async function persistActiveProjectPaths(): Promise<void> {
@@ -471,7 +513,9 @@ onMounted(() => {
         :path-a="pathA"
         :path-b="pathB"
         :loading="picking || savingProject"
+        :can-swap="canSwap"
         @pick="onPick"
+        @swap="onSwap"
       />
       <div class="border-t border-border">
         <ExcludeEditor
@@ -517,7 +561,9 @@ onMounted(() => {
         :path-b="pathB"
         :picking="picking"
         :saving="savingProject"
+        :can-swap="canSwap"
         @pick="onPick"
+        @swap="onSwap"
         @cancel="showList"
         @submit="onCreateProject"
       />

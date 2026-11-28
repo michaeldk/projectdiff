@@ -12,6 +12,7 @@ const props = withDefaults(
     pathB: string | null
     picking?: boolean
     saving?: boolean
+    canSwap?: boolean
     submitLabel?: string
   }>(),
   {
@@ -19,12 +20,14 @@ const props = withDefaults(
     initialName: '',
     picking: false,
     saving: false,
+    canSwap: true,
     submitLabel: 'Create project',
   },
 )
 
 const emit = defineEmits<{
   pick: [side: 'a' | 'b']
+  swap: []
   cancel: []
   submit: [payload: { name: string; pathA: string; pathB: string }]
 }>()
@@ -81,7 +84,9 @@ function onSubmit(): void {
         :path-a="pathA"
         :path-b="pathB"
         :loading="picking || saving"
+        :can-swap="canSwap && !picking && !saving"
         @pick="emit('pick', $event)"
+        @swap="emit('swap')"
       />
     </div>
 
